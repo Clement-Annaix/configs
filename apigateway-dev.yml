@@ -1,0 +1,74 @@
+spring:
+  application:
+    name: gatewayservice
+  cloud:
+    gateway:
+      discovery:
+        locator:
+          enabled: true #activation eureka locator
+          lowerCaseServiceId: true
+          # car le nom des services e
+      routes:
+        - id: membresservice
+          uri: lb://MEMBRESSERVICE
+          predicates:
+            - Path=/api/membres/**
+          filters:
+            - RewritePath=/api/membres(?<segment>/?.*), /$\{segment}
+        - id: coursservice
+          uri: lb://COURSSERVICE
+          predicates:
+            - Path=/api/cours/**
+          filters:
+            - RewritePath=/api/cours(?<segment>/?.*), /$\{segment}
+
+        - id: badgeservice
+          uri: lb://BADGESSERVICE
+          predicates:
+            - Path=/api/badges/**
+          filters:
+            - RewritePath=/api/badges(?<segment>/?.*), /$\{segment}
+        - id: membrescoursbagdesservice
+          uri: lb://MEMBRESCOURSBAGDESSERVICE
+          predicates:
+            - Path=/api/compositemembrecoursbadge/**
+          filters:
+            - RewritePath=/api/compositemembrecoursbadge(?<segment>/?.*), /$\{segment}
+      - id: competitionsservice
+          uri: lb://COMPETITIONSERVICE
+          predicates:
+            - Path=/api/competition/**
+          filters:
+            - RewritePath=/api/competition(?<segment>/?.*), /$\{segment}
+    - id: membrescompetitionsservice
+        uri: lb://MEMBRESCOMPETITIONSSERVICE
+        predicates:
+          - Path=/api/compositemembrecompetition/**
+        filters:
+          - RewritePath=/api/compositemembrecompetition(?<segment>/?.*), /$\{segment}
+
+        enabled: on
+
+management:
+  endpoints:
+    web:
+      exposure:
+        include:
+          env,health,
+          info,metrics,
+          loggers,mappings, prometheus
+# Configuration du log.
+logging:
+  level:
+    org.springframework.web: INFO # Choix du niveau de log affiché
+eureka:
+  client:
+    serviceUrl:
+      defaultZone: http://localhost:1111/eureka
+  instance:
+    metadata-map:
+      prometheus.scrape: "true"
+      prometheus.path: "/actuator/prometheus"
+      prometheus.port: "${management.server.port}"
+server:
+  port: 2000
